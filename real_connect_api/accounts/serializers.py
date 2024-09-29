@@ -1,4 +1,4 @@
-from .models import CustomUser
+from .models import CustomUser, UserProfile
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
@@ -13,17 +13,26 @@ class CustomUserSerializer(serializers.ModelSerializer):
         
     #User Creation 
     def create(self, validated_data):
+        #Creating User without profile first
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            bio = validated_data['bio'],
-            profile_pic = validated_data['profile_pic'],
-            location = validated_data['location'],
-            website = validated_data['website'],
-            cover_pic = validated_data['cover_pic'],
-            )
-        #Creating Token for the new user
+            password=validated_data['password'],      
 
+        ) 
+        #Additonal fields to the User
+        user.bio = validated_data.get('bio', "")
+        user.profile_pic = validated_data.get('profile_pic', None)
+        user.location = validated_data.get('location', "")
+        user.website = validated_data.get('website', "")
+        user.cover_pic = validated_data.get('cover_pic', None)
+        user.additional_info = validated_data.get('additional_info', "") #Provides room for additional info in future
+        user.save()
+
+        #Creating User Profile
+        UserProfile.objects.create(user=user, role="regular")
+        
+        #Creating Token for the new user
         Token.objects.create(user=user)
         return user
     
@@ -39,3 +48,12 @@ class UserLoginSerializer(serializers.Serializer):
         if not user.check_password(data['password']):
             raise serializers.ValidationError("Incorrect Password or Credentials")
         return user
+    
+#User Profile Serializer
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'role']
+    
+    
