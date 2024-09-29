@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import authentication
 from .serializers import CustomUserSerializer, UserLoginSerializer, UserProfileSerializer
 from rest_framework.authtoken.models import Token
+from .models import UserProfile
 
 User = get_user_model()
 
@@ -59,13 +60,19 @@ class UserProfileView(generics.GenericAPIView):
 
     #Get user profile
     def get(self, request):
-        user_profile = request.user.profile
+
+        user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
+       
+        #if user has no profile
+        if not user_profile:
+            return Response ({'message: Profile does not exist'}, status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(user_profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     #Update user profile
     def put(self, request):
-        user_profile = request.user.profile
+
+        user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
         serializer = self.get_serializer(user_profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -74,7 +81,7 @@ class UserProfileView(generics.GenericAPIView):
             
     #Delete user profile
     def delete(self, request):
-        user_profile = request.user.profile
+        user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
         user_profile.delete()
         return Response ({'message: Profile deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 

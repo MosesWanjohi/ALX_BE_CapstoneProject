@@ -10,7 +10,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'password', 'bio', 'profile_pic', 'location', 'website', 'cover_pic']
-        
+        read_only_fields = ['username', 'email'] #Username and Email are read only and cannot be updated
     #User Creation 
     def create(self, validated_data):
         #Creating User without profile first
@@ -29,7 +29,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.additional_info = validated_data.get('additional_info', "") #Provides room for additional info in future
         user.save()
 
-        #Creating User Profile
+        #Creating User Profile when user registers
         UserProfile.objects.create(user=user, role="regular")
         
         #Creating Token for the new user
@@ -55,5 +55,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user', 'role']
+
+    def update(self, instance, validated_data):
+        #Updating User Profile and User fields
+        instance.role = validated_data.get('role', instance.role)
+        instance.save()
+
+        #fetching user and updating user fields if user data is provided in the request context
+        user_data = self.context['request'].data.get('user', None)
+
+        if user_data:
+            user = instance.user
+
+            #Update of the related CustomUser fields
+            user.bio = user_data.get('bio', user.bio)
+            user.profile_pic = user_data.get('profile_pic', user.profile_pic)
+            user.location = user_data.get('location', user.location)
+            user.website = user_data.get('website', user.website)
+            user.cover_pic = user_data.get('cover_pic', user.cover_pic)
+            user.save()
+        return instance
     
     
