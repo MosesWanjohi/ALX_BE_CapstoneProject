@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'followers.apps.FollowersConfig',
     'posts.apps.PostsConfig',
+    'rest_framework.authtoken',
 
 ]
 
