@@ -68,9 +68,7 @@ class UserProfileView(generics.GenericAPIView):
     #Get user profile
     def get(self, request):
         user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
-        #if user has no profile
-        if not user_profile:
-            return Response ({'message: Profile does not exist'}, status=status.HTTP_404_NOT_FOUND)
+       #If user has no profile the response will be 404
         serializer = self.get_serializer(user_profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -80,14 +78,14 @@ class UserProfileView(generics.GenericAPIView):
         serializer = self.get_serializer(user_profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response ({'message: Profile updated successfully'}, status=status.HTTP_200_OK)
+            return Response ({'message': 'Profile updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
     #Delete user profile
     def delete(self, request):
         user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
         user_profile.delete()
-        return Response ({'message: Profile deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response ({'message': 'Profile deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
        

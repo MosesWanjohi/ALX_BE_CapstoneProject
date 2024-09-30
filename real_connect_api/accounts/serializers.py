@@ -1,4 +1,4 @@
-from .models import CustomUser, UserProfile, Role, UserRole
+from .models import UserProfile, Role, UserRole
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
@@ -8,37 +8,31 @@ class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     
     class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password', 'bio', 'profile_pic', 'location', 'website', 'cover_pic']
+        model = get_user_model()
+        fields = ['username', 'email', 'password']
         read_only_fields = ['username', 'email'] #Username and Email are read only and cannot be updated
     
-
     #User Creation 
     def create(self, validated_data):
-        #Creating User without profile first
+        #Creating User
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],      
 
-        ) 
-        #Additonal fields to the User
-        user.bio = validated_data.get('bio', "")
-        user.profile_pic = validated_data.get('profile_pic', None)
-        user.location = validated_data.get('location', "")
-        user.website = validated_data.get('website', "") #Specific to Agents
-        user.cover_pic = validated_data.get('cover_pic', None)
-        user.save()
-
-        #Assigning default role to the user upon registration
-        regular_role = Role.objects.get(name="regular")
-        UserRole.objects.create(user=user, role=regular_role)
-       
+        )
+        #Creating an empty User Profile as soon as user is created
+        UserProfile.objects.create(user=user)
         #Creating Token for the new user
         Token.objects.create(user=user)
-        return user
+        
+    #Assigning default role to the user upon registration
+        regular_role = Role.objects.get(name="regular")
+        UserRole.objects.create(user=user, role=regular_role)
+        
+        return user 
 
-    
+  
 #User Login Serializer
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -104,13 +98,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         if user_data:
             user = instance.user
-
             #Update of the related CustomUser fields
-            user.bio = user_data.get('bio', user.bio)
-            user.profile_pic = user_data.get('profile_pic', user.profile_pic)
-            user.location = user_data.get('location', user.location)
-            user.website = user_data.get('website', user.website)
-            user.cover_pic = user_data.get('cover_pic', user.cover_pic)
+            user.username = user_data.get('username', user.username)
+            user.email = user_data.get('email', user.email)
             user.save()
         return instance
         
@@ -126,23 +116,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
         
         
         
-        #Updating User Profile and User fields
-        instance.role = validated_data.get('role', instance.role)
-        instance.save()
-
-        #fetching user and updating user fields if user data is provided in the request context
-        user_data = self.context['request'].data.get('user', None)
-
-        if user_data:
-            user = instance.user
-
-            #Update of the related CustomUser fields
-            user.bio = user_data.get('bio', user.bio)
-            user.profile_pic = user_data.get('profile_pic', user.profile_pic)
-            user.location = user_data.get('location', user.location)
-            user.website = user_data.get('website', user.website)
-            user.cover_pic = user_data.get('cover_pic', user.cover_pic)
-            user.save()
-        return instance
-    
-    
+       
