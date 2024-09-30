@@ -24,10 +24,14 @@ class RegisterUserView(generics.GenericAPIView):
 
     #Registering User
     def post(self, request, format=None):
+        print("Request data: ", request.data) #To help debug incoming data
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+        
+        #print errors if invalid
+        print("Serializer errors: ", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #UserLoginView

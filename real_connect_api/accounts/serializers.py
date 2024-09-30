@@ -1,4 +1,4 @@
-from .models import UserProfile, Role, UserRole
+from .models import CustomUser, UserProfile, Role, UserRole
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
@@ -8,9 +8,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     
     class Meta:
-        model = get_user_model()
+        model = CustomUser
         fields = ['username', 'email', 'password']
-        read_only_fields = ['username', 'email'] #Username and Email are read only and cannot be updated
     
     #User Creation 
     def create(self, validated_data):
@@ -21,14 +20,20 @@ class CustomUserSerializer(serializers.ModelSerializer):
             password=validated_data['password'],      
 
         )
+        user.save()
+
+
         #Creating an empty User Profile as soon as user is created
         UserProfile.objects.create(user=user)
         #Creating Token for the new user
         Token.objects.create(user=user)
         
     #Assigning default role to the user upon registration
-        regular_role = Role.objects.get(name="regular")
-        UserRole.objects.create(user=user, role=regular_role)
+        try:
+            regular_role = Role.objects.get(name="regular")
+            UserRole.objects.create(user=user, role=regular_role)
+        except Role.DoesNotExist:
+            raise serializers.ValidationError("Default role 'regular'does not exist. Please create it.")
         
         return user 
 
@@ -71,7 +76,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
 #User Profile Serializer
 class UserProfileSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)
-    role = serializers.SerializerMethodField() #Fetch roles dynamically
+    roles = serializers.SerializerMethodField() #Fetch roles dynamically
     
     class Meta:
         model = UserProfile
