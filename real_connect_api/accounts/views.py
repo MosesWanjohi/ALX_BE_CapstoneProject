@@ -3,19 +3,26 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework import authentication
-from .serializers import CustomUserSerializer, UserLoginSerializer, UserProfileSerializer
+from .serializers import (
+    CustomUserSerializer,
+    UserLoginSerializer,
+    RoleSerializer,
+    UserRoleSerializer,
+    UserProfileSerializer
+)
 from rest_framework.authtoken.models import Token
 from .models import UserProfile
 
 User = get_user_model()
 
 #Create your views here.
+
 #UserRegistrationView
 class RegisterUserView(generics.GenericAPIView):
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.AllowAny]
 
-    #Register User
+    #Registering User
     def post(self, request, format=None):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -48,7 +55,7 @@ class LogoutUserView(generics.GenericAPIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
-    def get(self, request, format=None):
+    def post(self, request, format=None):
         request.user.auth_token.delete()
         return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
     
@@ -60,9 +67,7 @@ class UserProfileView(generics.GenericAPIView):
 
     #Get user profile
     def get(self, request):
-
         user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
-       
         #if user has no profile
         if not user_profile:
             return Response ({'message: Profile does not exist'}, status=status.HTTP_404_NOT_FOUND)
@@ -71,7 +76,6 @@ class UserProfileView(generics.GenericAPIView):
 
     #Update user profile
     def put(self, request):
-
         user_profile = get_object_or_404(UserProfile, user=request.user) #Gets the profile of the logged in user
         serializer = self.get_serializer(user_profile, data=request.data)
         if serializer.is_valid():
