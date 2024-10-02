@@ -12,6 +12,7 @@ from .serializers import (
 )
 from rest_framework.authtoken.models import Token
 from .models import UserProfile
+from drf_yasg.utils import swagger_auto_schema
 
 User = get_user_model()
 
@@ -56,12 +57,27 @@ class LoginUserView(generics.GenericAPIView):
 
 #UserLogoutView
 class LogoutUserView(generics.GenericAPIView):
-    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
     
-    def post(self, request, format=None):
-        request.user.auth_token.delete()
-        return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+    def get_serializer_class(self):
+        #Return None to indicate no serializer is needed
+        return None
+    
+    
+    @swagger_auto_schema(
+        operation_description="Logout user",
+    )
+
+    def post(self, request, *args, **kwargs):
+        #Delete the token
+        try:
+            token = Token.objects.get(user=request.user)
+            token.delete()
+            return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+
+        except Token.DoesNotExist:
+            return Response({'message': 'Token not found'}, status=status.HTTP_404_BAD_REQUEST)
     
 #UserProfileView
 class UserProfileView(generics.GenericAPIView):
