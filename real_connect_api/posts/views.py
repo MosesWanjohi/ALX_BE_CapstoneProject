@@ -2,10 +2,11 @@ from django.shortcuts import get_object_or_404
 from .models import Post
 from .serializers import PostSerializer
 from rest_framework import viewsets, status
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .permissions import IsAuthorOrReadOnly #Custom permission
-
+from rest_framework import filters
 # Create your views here.
 
 #Views for handling CRUD operations on posts
@@ -72,4 +73,22 @@ class PostViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response({'message': 'Post deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     
-    
+#Feed of posts Endpoint
+class FeedView(ListAPIView):
+    """
+    Endpoint for retrieving posts from the user's following
+    """
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Post.objects.all()
+
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_fields = ['author__username']
+    search_fields = ['content']
+    ordering_fields = ['-created_at']
+
+    def get_queryset(self):
+        user = self.request.user
+        following = user.following.all()
+        return Post.objects.filter(author__username__in=following).order_by('-created_at')
+        

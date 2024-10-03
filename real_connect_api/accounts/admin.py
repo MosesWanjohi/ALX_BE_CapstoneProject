@@ -33,7 +33,7 @@ class CustomUserAdmin(UserAdmin):
       """
       return Follower.objects.filter(following=obj).count()
    
-   followers_count.short_description = 'Followers'
+  
    
    def following_count(self, obj):
       """
@@ -41,6 +41,7 @@ class CustomUserAdmin(UserAdmin):
       """
       return Follower.objects.filter(follower=obj).count()
    
+   followers_count.short_description = 'Followers'
    following_count.short_description = 'Following'
 
 #Unregistering the default UserAdmin model if it exists

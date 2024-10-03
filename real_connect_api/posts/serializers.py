@@ -8,12 +8,13 @@ User = get_user_model()
 class PostSerializer(serializers.ModelSerializer):
     #Automatically set the author of the post
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
+    author_username = serializers.CharField(source='author.username', read_only=True)
     class Meta:
         model = Post
         fields = [
             'id',
             'author',
+            'author_username',
             'title',
             'content',
             'created_at',
@@ -36,7 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     def validate_content(self, data):
         #Check if the post contains forbidden words
         forbidden_words = ['forbidden', 'spam', 'scam', 'fraud', 'banned']
-        if any(word in data for word in forbidden_words):
+        if any(word in data.lower() for word in forbidden_words):
             raise ValidationError("Post contains forbidden words")
         return data
     
