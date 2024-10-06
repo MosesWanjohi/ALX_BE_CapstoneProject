@@ -21,12 +21,12 @@ def increment_follower_count(sender, instance, created, **kwargs):
         instance.follower.save(update_fields=['following_count'])
 
     #Creating a notification for the user being followed
-    Notification.objects.create(
-        recipient = instance.following, #The user being followed
-        actor = instance.following, #The user doing the following
-        verb = "started following",
-        content_type = ContentType.objects.get_for_model(Follower),
-        object_id = instance.id #The id of the follow relationship
+        Notification.objects.create(
+            recipient = instance.following, #The user being followed
+            actor = instance.following, #The user doing the following
+            verb = "started following",
+            target_content_type = ContentType.objects.get_for_model(Follower),
+            target_object_id = instance.id #The id of the follow relationship
     )
 
 

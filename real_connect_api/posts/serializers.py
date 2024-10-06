@@ -9,8 +9,6 @@ class PostSerializer(serializers.ModelSerializer):
     #Automatically set the author of the post
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     author_username = serializers.CharField(source='author.username', read_only=True)
-    likes_count = serializers.IntegerField(source='like_set.count', read_only=True)
-    comments_count = serializers.IntegerField(source='comment_set.count', read_only=True)
 
     class Meta:
         model = Post
@@ -60,10 +58,18 @@ class LikeSerializer(serializers.ModelSerializer):
    
 #Comment Serializer
 class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
     class Meta:
         model = Comment
         fields = [
             'post',
-            'content'
+            'content',
+            'author',
+            'created_at',
+            'updated_at',
+            'id'
         ]
-        read_only_fields = ['author', 'created_at', 'updated_at']
+        read_only_fields = ['author','id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        return super().create(validated_data)

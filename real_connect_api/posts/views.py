@@ -135,8 +135,8 @@ class LikePostView(generics.GenericAPIView):
                 recipient = post.author,
                 actor = request.user,
                 verb = "liked",
-                content_type = ContentType.objects.get_for_model(Post),
-                object_id = post.id
+                target_content_type = ContentType.objects.get_for_model(Post),
+                target_object_id = post.id
             )
             return Response({'message': 'Post liked'}, status=status.HTTP_200_CREATED)
         else:
@@ -155,14 +155,14 @@ class CommentViewSet(viewsets.ModelViewSet):
         post = get_object_or_404(Post, pk=pk)
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=self.request.user, post=post)
+            serializer.save(author=self.request.user, post=post)
             
             Notification.objects.create(
                 recipient = post.author,
                 actor = request.user,
                 verb = "commented",
-                content_type = ContentType.objects.get_for_model(Post),
-                object_id = post.id
+                target_content_type = ContentType.objects.get_for_model(Post),
+                target_object_id = post.id
             )
             return Response({'message': 'Comment created successfully', 'comment': serializer.data}, status=status.HTTP_201_CREATED)
 
