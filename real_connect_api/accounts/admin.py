@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, UserProfile
+from .models import CustomUser, UserProfile, Role, UserRole
 from followers.models import  Follower
 
 
@@ -52,4 +52,15 @@ except admin.sites.NotRegistered:
 
 admin.site.register(CustomUser, CustomUserAdmin)
 
+class UserRoleAdmin(admin.ModelAdmin):
+   """
+   Admin interface for UserRole model.
+   """
+   list_display = ('user', 'role')
+   
+admin.site.register(UserRole, UserRoleAdmin)
 
+"""
+Registering the Role model
+"""
+admin.site.register(Role)

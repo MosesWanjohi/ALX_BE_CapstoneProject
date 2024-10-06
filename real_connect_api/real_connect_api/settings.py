@@ -37,16 +37,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_yasg',
-   
-    'rest_framework',
+
+    # My apps
     'accounts.apps.AccountsConfig',
     'followers.apps.FollowersConfig',
     'posts.apps.PostsConfig',
-    'rest_framework.authtoken',
-    'django_filters',
-   
+    'notifications.apps.NotificationsConfig',
 
+    # 3rd party apps
+    'drf_yasg',
+    'django_filters',
+    'rest_framework_simplejwt', #Enables localization of my application
+    'rest_framework_simplejwt.token_blacklist', #Blacklists old tokens
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -142,7 +146,7 @@ MEDIA_URL = '/media/'
 # REST framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 
     'DEFAULT_PERMISSION_CLASSES': [
@@ -158,13 +162,23 @@ REST_FRAMEWORK = {
     ]
 }
 
+#Customizing JWT settings to extend lifetime of tokens
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+}
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
-        'Token': {
+        'JWT': {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header',
-            'description': 'Enter your token in the format: Token <your-auth-token>.'
+            'description': 'Enter your token in the format: Bearer <your-jwt-token>.'
         }
     },
 

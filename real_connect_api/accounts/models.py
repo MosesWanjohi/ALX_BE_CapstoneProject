@@ -7,9 +7,8 @@ from django.contrib.auth.models import AbstractUser
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=True)
-    
     followers_count = models.PositiveIntegerField(default=0) 
-
+    following_count = models.PositiveIntegerField(default=0)
     def __str__(self):
         return self.username
     
